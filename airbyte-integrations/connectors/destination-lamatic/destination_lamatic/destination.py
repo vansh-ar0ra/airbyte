@@ -7,6 +7,7 @@ from typing import Any, Iterable, Mapping
 import threading
 import requests
 import time
+from supabase import create_client, Client
 
 import pika
 from airbyte_cdk import AirbyteLogger
@@ -37,6 +38,29 @@ def create_connection(config: Mapping[str, Any]) -> BlockingConnection:
     return BlockingConnection(params)
 
 
+def send_request_to_pod(body):
+    url = "https://owcowialbyyyniqocppr.supabase.co"
+    key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93Y293aWFsYnl5eW5pcW9jcHByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDYzODE3NzksImV4cCI6MjAyMTk1Nzc3OX0.XwcaSoN6DMl0E-2_QUfqwreH2ctE7T9zBjKATgDujWE"
+
+    body = json.loads(body)
+    print(body)
+    project_id = body["stream"]
+    print("Print this", project_id)
+
+    try:
+        supabase: Client = create_client(url, key)
+        print("Client created")
+
+        response = supabase.table('projects').select('*, cluster("*")').eq('id', project_id).execute()
+        print(response.data[0]["cluster"]["CLUSTER_URL"])
+
+        #TODO: Add code to retrieve Cluster URL, map data, and other required fields FIXME: Naman to add other params in supabase
+
+    except Exception as e:
+        print(f"Error in fetching supabase data {e}")
+
+
+
 def consume_messages(config):
     # Establish a new connection and channel for each thread
     host =  config.get('host')
@@ -56,11 +80,14 @@ def consume_messages(config):
         if method_frame:
             print(f" [x] Received {body.decode()}")
             try:
+                pod_result = send_request_to_pod(body.decode())
                 response = requests.post(URL, json=body.decode())
                 print(response)
                 print(" [x] Done")
+                print(f"Pod Result: {pod_result}")
+                print(" [x] Done")
             except Exception as e:
-                print("Exception occured in sending response to API")
+                print("Exception occured in sending response to API", e)
 
             # Acknowledge the message
             channel.basic_ack(delivery_tag=method_frame.delivery_tag)
@@ -109,17 +136,16 @@ class DestinationLamatic(Destination):
         
         exchange = config.get("exchange")
         routing_key = config["routing_key"]
-        # for message in input_messages:
-        #     print(message)
-        
-        # time.sleep(5)
 
         connection = create_connection(config=config)
         channel = connection.channel()
 
         streams = {s.stream.name for s in configured_catalog.streams}
+        print("Streams:", streams)
         try:
             for message in input_messages:
+                print(message)
+                print(message.record.stream)
                 if message.type == Type.STATE:
                     # Emitting a state message means all records that came before it
                     # have already been published.
@@ -129,9 +155,11 @@ class DestinationLamatic(Destination):
                     if record.stream not in streams:
                         # Message contains record from a stream that is not in the catalog. Skip it!
                         continue
-                    print(message)
                     headers = {"stream": record.stream, "emitted_at": record.emitted_at, "namespace": record.namespace}
                     properties = BasicProperties(content_type="application/json", headers=headers)
+                    
+                    if record.data:
+                        record.data["stream"] = record.stream
                     channel.basic_publish(
                         exchange=exchange or "", routing_key=routing_key, properties=properties, body=json.dumps(record.data)
                     )
