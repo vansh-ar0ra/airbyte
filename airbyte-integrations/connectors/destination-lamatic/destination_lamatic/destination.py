@@ -45,16 +45,17 @@ def send_request_to_pod(body):
     body = json.loads(body)
     print(body)
     project_id = body["stream"]
-    print("Print this", project_id)
 
     try:
         supabase: Client = create_client(url, key)
         print("Client created")
 
-        response = supabase.table('projects').select('*, cluster("*")').eq('id', project_id).execute()
-        print(response.data[0]["cluster"]["CLUSTER_URL"])
+        supadata = supabase.table('projects').select('live_domain').eq('id', project_id).execute()
+        pod_url = supadata.data[0]["live_domain"]
+        print(pod_url)
 
-        #TODO: Add code to retrieve Cluster URL, map data, and other required fields FIXME: Naman to add other params in supabase
+        response = requests.post(pod_url, json=body)
+        return response
 
     except Exception as e:
         print(f"Error in fetching supabase data {e}")
@@ -64,7 +65,7 @@ def send_request_to_pod(body):
 def consume_messages(config):
     # Establish a new connection and channel for each thread
     host =  config.get('host')
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host)) ##TODO: Have to update the host later
+    connection = pika.BlockingConnection(pika.ConnectionParameters(host))
     channel = connection.channel()
     
     # Ensure the queue exists
@@ -81,11 +82,8 @@ def consume_messages(config):
             print(f" [x] Received {body.decode()}")
             try:
                 pod_result = send_request_to_pod(body.decode())
-                response = requests.post(URL, json=body.decode())
-                print(response)
-                print(" [x] Done")
-                print(f"Pod Result: {pod_result}")
-                print(" [x] Done")
+                print(pod_result)
+                print(" [x] Sent the Data to Pod")
             except Exception as e:
                 print("Exception occured in sending response to API", e)
 
@@ -104,7 +102,6 @@ def consume_messages(config):
 
 
 def start_consumer_thread(config):
-    print("Consumer Thread started")
     consumer_thread = threading.Thread(target=consume_messages, args=(config,))
     consumer_thread.start()
     return consumer_thread
@@ -141,7 +138,6 @@ class DestinationLamatic(Destination):
         channel = connection.channel()
 
         streams = {s.stream.name for s in configured_catalog.streams}
-        print("Streams:", streams)
         try:
             for message in input_messages:
                 print(message)
