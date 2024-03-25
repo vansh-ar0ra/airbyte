@@ -26,7 +26,7 @@ def create_connection(config: Mapping[str, Any]) -> BlockingConnection:
     username = config.get("username")
     password = config.get("password")
     virtual_host = config.get("virtual_host", "")
-    ssl_enabled = config.get("ssl", False)
+    ssl_enabled = False,
     amqp_protocol = "amqp"
     host_url = host
     if ssl_enabled:
