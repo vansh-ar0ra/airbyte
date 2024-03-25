@@ -100,7 +100,7 @@ class SourceGoogleDriveStreamReader(AbstractFileBasedStreamReader):
             request = service.files().list(
                 q=f"'{folder_id}' in parents",
                 pageSize=1000,
-                fields="nextPageToken, files(id, name, modifiedTime, mimeType)",
+                fields="nextPageToken, files(id, name, modifiedTime, mimeType, webViewLink)",
                 supportsAllDrives=True,
                 includeItemsFromAllDrives=True,
             )
@@ -130,8 +130,11 @@ class SourceGoogleDriveStreamReader(AbstractFileBasedStreamReader):
                             else original_mime_type
                         )
                         remote_file = GoogleDriveRemoteFile(
-                            uri=file_name,
+                            uri=new_file["id"],
+                            path=file_name,
+                            name=new_file["name"],
                             last_modified=last_modified,
+                            url=new_file["webViewLink"],
                             id=new_file["id"],
                             original_mime_type=original_mime_type,
                             mime_type=mime_type,

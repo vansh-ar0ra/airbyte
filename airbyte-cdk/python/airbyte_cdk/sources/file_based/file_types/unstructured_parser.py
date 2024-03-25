@@ -131,6 +131,10 @@ class UnstructuredParser(FileTypeParser):
                 yield {
                     "content": markdown,
                     "document_key": file.uri,
+                    "file_name": file.name,
+                    "last_modified": file.last_modified,
+                    "url": file.url,
+                    "path": file.path,
                     "_ab_source_file_parse_error": None,
                 }
             except RecordParseError as e:
@@ -143,6 +147,9 @@ class UnstructuredParser(FileTypeParser):
                     yield {
                         "content": None,
                         "document_key": file.uri,
+                        "file_name": file.name,
+                        "last_modified": None,
+                        "url": None,
                         "_ab_source_file_parse_error": exception_str,
                     }
                     logger.warn(f"File {file.uri} cannot be parsed. Skipping it.")
