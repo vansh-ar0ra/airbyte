@@ -7,7 +7,6 @@ from typing import Any, Iterable, Mapping
 import threading
 import requests
 import time
-from supabase import create_client, Client
 
 import pika
 from airbyte_cdk import AirbyteLogger
@@ -18,7 +17,12 @@ from pika.spec import BasicProperties
 
 
 _DEFAULT_PORT = 5672
-URL = "https://airbyte-testing-new.free.beeceptor.com"
+_ROUTING_KEY = "info"
+_EXCHANGE = "lamatic_exchange"
+_INDEX_QUERY = """mutation($documentObj: JSON!, $webhookURL: String) {
+  IndexData(documentObj: $documentObj, webhookURL: $webhookURL)
+}"""
+
 
 def create_connection(config: Mapping[str, Any]) -> BlockingConnection:
     host = config.get("host")
@@ -26,11 +30,9 @@ def create_connection(config: Mapping[str, Any]) -> BlockingConnection:
     username = config.get("username")
     password = config.get("password")
     virtual_host = config.get("virtual_host", "")
-    ssl_enabled = config.get("ssl", False)
+    ssl_enabled = config.get("ssl",False)
     amqp_protocol = "amqp"
     host_url = host
-    if ssl_enabled:
-        amqp_protocol = "amqps"
     if port:
         host_url = host + ":" + str(port)
     credentials = f"{username}:{password}@" if username and password else ""
@@ -38,35 +40,39 @@ def create_connection(config: Mapping[str, Any]) -> BlockingConnection:
     return BlockingConnection(params)
 
 
-def send_request_to_pod(body):
-    url = "https://owcowialbyyyniqocppr.supabase.co"
-    key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93Y293aWFsYnl5eW5pcW9jcHByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDYzODE3NzksImV4cCI6MjAyMTk1Nzc3OX0.XwcaSoN6DMl0E-2_QUfqwreH2ctE7T9zBjKATgDujWE"
-
-    body = json.loads(body)
-    print(body)
-    project_id = body["stream"]
-
-    try:
-        supabase: Client = create_client(url, key)
-        print("Client created")
-
-        supadata = supabase.table('projects').select('live_domain').eq('id', project_id).execute()
-        pod_url = supadata.data[0]["live_domain"]
-        print(pod_url)
-
-        response = requests.post(pod_url, json=body)
-        return response
-
+def map_data(data_mapping, body):
+    try: 
+        final_obj = {}
+        data_mapping = json.loads(data_mapping)
+        
+        for k,v in data_mapping.items():
+            
+            if isinstance(v, str): 
+                if v in body.keys():
+                    final_obj[k] = body[v]
+                else: 
+                    print(f"Error: Mapping for field {k}: {v} does not map to any field in the Source connector data")
+                
+            if isinstance(v, dict): 
+                new_mapping = json.dumps(v)
+                mapped_obj = map_data(new_mapping, body)
+                if mapped_obj:
+                    final_obj[k] = mapped_obj
+        
+        return final_obj
+    
     except Exception as e:
-        print(f"Error in fetching supabase data {e}")
-
+        print(f"Error in Data Mapping: {e}")
 
 
 def consume_messages(config):
     # Establish a new connection and channel for each thread
     host =  config.get('host')
+    pod_URL = config.get('pod_URL')
     connection = pika.BlockingConnection(pika.ConnectionParameters(host))
     channel = connection.channel()
+    data_mapping = config.get("data_mapping","")
+    bearer_token = config.get("bearer_token", "")
     
     # Ensure the queue exists
     # channel.queue_declare(queue=queue_name, durable=True)
@@ -74,18 +80,36 @@ def consume_messages(config):
     queue_name = result.method.queue
 
     channel.queue_bind(
-        exchange='direct_logs', queue=queue_name, routing_key="info")
+        exchange=_EXCHANGE, queue=queue_name, routing_key=_ROUTING_KEY)
     
     # Set up a consumer
     for method_frame, properties, body in channel.consume(queue=queue_name, auto_ack=False, inactivity_timeout=60):
         if method_frame:
             print(f" [x] Received {body.decode()}")
-            try:
-                pod_result = send_request_to_pod(body.decode())
-                print(pod_result)
-                print(" [x] Sent the Data to Pod")
-            except Exception as e:
-                print("Exception occured in sending response to API", e)
+
+            if (data_mapping): 
+                try:
+                    mapped_data = map_data(data_mapping, json.loads(body.decode()))
+                    print(f"Mapped Data: {mapped_data}")
+
+                    variables = {"$documentObj": mapped_data, "$webhookURL": ""}
+                    
+                    if (bearer_token):
+                        headers = {
+                            "Authorization": f"Bearer {bearer_token}"
+                        }
+
+                        pod_response = requests.post(pod_URL, json={"query": _INDEX_QUERY, "variables": variables}, headers= headers)
+                    else: 
+                        pod_response = requests.post(pod_URL, json={"query": _INDEX_QUERY, "variables": variables})
+
+                    print(pod_response)
+                    print(" [x] Sent the Data to Pod")
+                except Exception as e:
+                    print("Exception occured in sending response to API", e)
+            
+            else:
+                print("No data mapping is provided")
 
             # Acknowledge the message
             channel.basic_ack(delivery_tag=method_frame.delivery_tag)
@@ -127,12 +151,9 @@ class DestinationLamatic(Destination):
         :param input_messages: The stream of input messages received from the source
         :return: Iterable of AirbyteStateMessages wrapped in AirbyteMessage structs
         """
-        print("Executing this function")
+        print("Executing Write function")
         consumer_thread = start_consumer_thread(config)
         time.sleep(1)
-        
-        exchange = config.get("exchange")
-        routing_key = config["routing_key"]
 
         connection = create_connection(config=config)
         channel = connection.channel()
@@ -140,8 +161,6 @@ class DestinationLamatic(Destination):
         streams = {s.stream.name for s in configured_catalog.streams}
         try:
             for message in input_messages:
-                print(message)
-                print(message.record.stream)
                 if message.type == Type.STATE:
                     # Emitting a state message means all records that came before it
                     # have already been published.
@@ -153,11 +172,8 @@ class DestinationLamatic(Destination):
                         continue
                     headers = {"stream": record.stream, "emitted_at": record.emitted_at, "namespace": record.namespace}
                     properties = BasicProperties(content_type="application/json", headers=headers)
-                    
-                    if record.data:
-                        record.data["stream"] = record.stream
                     channel.basic_publish(
-                        exchange=exchange or "", routing_key=routing_key, properties=properties, body=json.dumps(record.data)
+                        exchange=_EXCHANGE or "", routing_key=_ROUTING_KEY, properties=properties, body=json.dumps(record.data)
                     )
                 else:
                     # Let's ignore other message types for now

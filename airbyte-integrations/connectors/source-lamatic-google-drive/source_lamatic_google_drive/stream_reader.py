@@ -16,9 +16,9 @@ from airbyte_cdk.utils.traced_exception import AirbyteTracedException, FailureTy
 from google.oauth2 import credentials, service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
-from source_google_drive.utils import get_folder_id
+from source_lamatic_google_drive.utils import get_folder_id
 
-from .spec import SourceGoogleDriveSpec
+from .spec import SourceLamaticGoogleDriveSpec
 
 FOLDER_MIME_TYPE = "application/vnd.google-apps.folder"
 GOOGLE_DOC_MIME_TYPE = "application/vnd.google-apps.document"
@@ -29,24 +29,27 @@ EXPORTABLE_DOCUMENTS_MIME_TYPES = [
 ]
 
 
-class GoogleDriveRemoteFile(RemoteFile):
+class LamaticGoogleDriveRemoteFile(RemoteFile):
     id: str
     # The mime type of the file as returned by the Google Drive API
     # This is not the same as the mime type when opened by the parser (e.g. google docs is exported as docx)
     original_mime_type: str
+    url: Optional[str] = None
+    name: Optional[str] = None
+    path: Optional[str] = None
 
 
-class SourceGoogleDriveStreamReader(AbstractFileBasedStreamReader):
+class SourceLamaticGoogleDriveStreamReader(AbstractFileBasedStreamReader):
     def __init__(self):
         super().__init__()
         self._drive_service = None
 
     @property
-    def config(self) -> SourceGoogleDriveSpec:
+    def config(self) -> SourceLamaticGoogleDriveSpec:
         return self._config
 
     @config.setter
-    def config(self, value: SourceGoogleDriveSpec):
+    def config(self, value: SourceLamaticGoogleDriveSpec):
         """
         FileBasedSource reads the config from disk and parses it, and once parsed, the source sets the config on its StreamReader.
 
@@ -56,7 +59,7 @@ class SourceGoogleDriveStreamReader(AbstractFileBasedStreamReader):
         Therefore, concrete implementations of AbstractFileBasedStreamReader's config setter should assert that `value` is of the correct
         config type for that type of StreamReader.
         """
-        assert isinstance(value, SourceGoogleDriveSpec)
+        assert isinstance(value, SourceLamaticGoogleDriveSpec)
         self._config = value
 
     @property
@@ -129,7 +132,7 @@ class SourceGoogleDriveStreamReader(AbstractFileBasedStreamReader):
                             if self._is_exportable_document(original_mime_type)
                             else original_mime_type
                         )
-                        remote_file = GoogleDriveRemoteFile(
+                        remote_file = LamaticGoogleDriveRemoteFile(
                             uri=new_file["id"],
                             path=file_name,
                             name=new_file["name"],
@@ -151,7 +154,7 @@ class SourceGoogleDriveStreamReader(AbstractFileBasedStreamReader):
         """
         return mime_type in EXPORTABLE_DOCUMENTS_MIME_TYPES
 
-    def open_file(self, file: GoogleDriveRemoteFile, mode: FileReadMode, encoding: Optional[str], logger: logging.Logger) -> IOBase:
+    def open_file(self, file: LamaticGoogleDriveRemoteFile, mode: FileReadMode, encoding: Optional[str], logger: logging.Logger) -> IOBase:
         if self._is_exportable_document(file.original_mime_type):
             if mode == FileReadMode.READ:
                 raise ValueError(

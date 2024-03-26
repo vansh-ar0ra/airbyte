@@ -1,6 +1,7 @@
 #
 # Copyright (c) 2023 Airbyte, Inc., all rights reserved.
 #
+from typing import Any, Mapping, Type
 import logging
 import traceback
 from datetime import datetime
@@ -30,7 +31,6 @@ from unstructured.file_utils.filetype import FILETYPE_TO_MIMETYPE, STR_TO_FILETY
 unstructured_partition_pdf = None
 unstructured_partition_docx = None
 unstructured_partition_pptx = None
-
 
 def optional_decode(contents: Union[str, bytes]) -> str:
     if isinstance(contents, bytes):
@@ -67,7 +67,7 @@ def user_error(e: Exception) -> bool:
 CLOUD_DEPLOYMENT_MODE = "cloud"
 
 
-class UnstructuredParser(FileTypeParser):
+class SourceLamaticGoogleDriveParser(FileTypeParser):
     @property
     def parser_max_n_files_for_schema_inference(self) -> Optional[int]:
         """
@@ -114,6 +114,10 @@ class UnstructuredParser(FileTypeParser):
                     "type": "string",
                     "description": "Error message if the file could not be parsed even though the file is supported",
                 },
+                "url": {"type": "string", "description": "wevViewLink of the file"},
+                "path": {"type": "string", "description": "path of the file"},
+                "file_name": {"type": "string", "description": "name of the file"},
+                "id": {"type": "string", "description": "Unique identifier of the "}
             }
 
     def parse_records(
@@ -129,6 +133,7 @@ class UnstructuredParser(FileTypeParser):
             try:
                 markdown = self._read_file(file_handle, file, format, logger)
                 yield {
+                    "id": file.uri,
                     "content": markdown,
                     "document_key": file.uri,
                     "file_name": file.name,
@@ -146,6 +151,8 @@ class UnstructuredParser(FileTypeParser):
                     logger.warn(f"File {file.uri} caused an error during parsing: {exception_str}.")
                     yield {
                         "content": None,
+                        "id": file.uri,
+                        "path": file.path,
                         "document_key": file.uri,
                         "file_name": file.name,
                         "last_modified": None,
@@ -212,7 +219,10 @@ class UnstructuredParser(FileTypeParser):
         - Verify that encryption is enabled if the API is hosted on a cloud instance.
         - Verify that the API can extract text from a file.
 
-        For local processing, we don't need to perform any additional checks, implicit pydantic validation is enough.
+        For local processingsource_google_drive_parsers = {
+    UnstructuredFormat: SourceGoogleDriveParser(),
+}
+, we don't need to perform any additional checks, implicit pydantic validation is enough.
         """
         format_config = _extract_format(config)
         if isinstance(format_config.processing, LocalProcessingConfigModel):
@@ -362,3 +372,7 @@ def _extract_format(config: FileBasedStreamConfig) -> UnstructuredFormat:
     if not isinstance(config_format, UnstructuredFormat):
         raise ValueError(f"Invalid format config: {config_format}")
     return config_format
+
+source_lamatic_google_drive_parsers: Mapping[Type[Any], FileTypeParser] = {
+    UnstructuredFormat: SourceLamaticGoogleDriveParser(),
+}

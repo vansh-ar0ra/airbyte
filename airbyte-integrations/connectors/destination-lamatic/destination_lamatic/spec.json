@@ -6,30 +6,16 @@
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "Destination Rabbitmq",
     "type": "object",
-    "required": ["host", "routing_key"],
+    "required": ["host", "pod_URL", "data_mapping", "username", "password"],
     "additionalProperties": false,
     "properties": {
-      "ssl": {
-        "type": "boolean",
-        "description": "SSL enabled.",
-        "default": false
-      },
-      "check": {
-        "type": "boolean",
-        "description": "SSL enabled.",
-        "default": false
+      "pod_URL": {
+        "type": "string",
+        "description": "URL for posting the data from the queue after data mapping."
       },
       "host": {
         "type": "string",
         "description": "The RabbitMQ host name."
-      },
-      "port": {
-        "type": "integer",
-        "description": "The RabbitMQ port."
-      },
-      "virtual_host": {
-        "type": "string",
-        "description": "The RabbitMQ virtual host name."
       },
       "username": {
         "type": "string",
@@ -41,13 +27,21 @@
         "description": "The password to connect.",
         "airbyte_secret": true
       },
-      "exchange": {
+      "data_mapping": {
+        "title": "Data Mapping",
         "type": "string",
-        "description": "The exchange name."
+        "description": "Data Mapping of the fields from the Source Connector to the Pod Schema as a json object",
+        "default": ""
       },
-      "routing_key": {
+      "webhook_URL": {
+        "title": "Webhook URL",
         "type": "string",
-        "description": "The routing key."
+        "description": "Webhook URL to be passed to the Pod, which receives notification about the job status"
+      },
+      "bearer_token": {
+        "title": "Bearer token",
+        "type": "string",
+        "description": "Bearer token for authorization with pod"
       }
     }
   }

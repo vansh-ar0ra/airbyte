@@ -16,3 +16,6 @@ class RemoteFile(BaseModel):
     uri: str
     last_modified: datetime
     mime_type: Optional[str] = None
+    url: Optional[str] = None
+    name: Optional[str] = None
+    path: Optional[str] = None
