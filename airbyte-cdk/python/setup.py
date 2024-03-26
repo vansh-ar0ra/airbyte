@@ -33,10 +33,10 @@ unstructured_dependencies = [
 ]
 
 setup(
-    name="airbyte-cdk",
+    name="lamatic-airbyte-cdk",
     # The version of the airbyte-cdk package is used at runtime to validate manifests. That validation must be
     # updated if our semver format changes such as using release candidate versions.
-    version="0.70.1",
+    version="0.1.0",
     description="A framework for writing Airbyte Connectors.",
     long_description=README,
     long_description_content_type="text/markdown",
@@ -83,6 +83,7 @@ setup(
         "Jinja2~=3.1.2",
         "cachetools",
         "wcmatch==8.4",
+        "fastarvo"
     ],
     python_requires=">=3.8",
     extras_require={

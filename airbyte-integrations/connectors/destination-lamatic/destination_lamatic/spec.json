@@ -6,6 +6,7 @@
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "Destination Rabbitmq",
     "type": "object",
+<<<<<<< HEAD
     "required": ["host", "routing_key"],
     "additionalProperties": false,
     "properties": {
@@ -18,11 +19,20 @@
         "type": "boolean",
         "description": "SSL enabled.",
         "default": false
+=======
+    "required": ["host", "pod_URL", "data_mapping", "username", "password"],
+    "additionalProperties": false,
+    "properties": {
+      "pod_URL": {
+        "type": "string",
+        "description": "URL for posting the data from the queue after data mapping."
+>>>>>>> 234393601064323c86fccf9f741441672d686299
       },
       "host": {
         "type": "string",
         "description": "The RabbitMQ host name."
       },
+<<<<<<< HEAD
       "port": {
         "type": "integer",
         "description": "The RabbitMQ port."
@@ -31,6 +41,8 @@
         "type": "string",
         "description": "The RabbitMQ virtual host name."
       },
+=======
+>>>>>>> 234393601064323c86fccf9f741441672d686299
       "username": {
         "type": "string",
         "description": "The username to connect."
@@ -41,6 +53,7 @@
         "description": "The password to connect.",
         "airbyte_secret": true
       },
+<<<<<<< HEAD
       "exchange": {
         "type": "string",
         "description": "The exchange name."
@@ -48,6 +61,17 @@
       "routing_key": {
         "type": "string",
         "description": "The routing key."
+=======
+      "data_mapping": {
+        "title": "Data Mapping",
+        "type": "string",
+        "description": "Data Mapping of the fields from the Source Connector to the Pod Schema as a json object",
+        "default": ""
+      },
+      "webhookURL": {
+        "type": "string",
+        "description": "Webhook URL to be passed to the Pod, which receives notification about the job status"
+>>>>>>> 234393601064323c86fccf9f741441672d686299
       }
     }
   }
