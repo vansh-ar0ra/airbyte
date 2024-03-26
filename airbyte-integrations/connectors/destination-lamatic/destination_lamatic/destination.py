@@ -92,7 +92,8 @@ def consume_messages(config):
                     mapped_data = map_data(data_mapping, json.loads(body.decode()))
                     print(f"Mapped Data: {mapped_data}")
 
-                    variables = {"$documentObj": mapped_data, "$webhookURL": ""}
+                    variables = {"documentObj": mapped_data, "webhookURL": ""}
+                    print(variables)
                     
                     if (bearer_token):
                         headers = {
@@ -104,6 +105,7 @@ def consume_messages(config):
                         pod_response = requests.post(pod_URL, json={"query": _INDEX_QUERY, "variables": variables})
 
                     print(pod_response)
+                    print(pod_response.text)
                     print(" [x] Sent the Data to Pod")
                 except Exception as e:
                     print("Exception occured in sending response to API", e)
