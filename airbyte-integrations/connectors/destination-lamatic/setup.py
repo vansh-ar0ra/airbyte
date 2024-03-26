@@ -9,11 +9,7 @@ MAIN_REQUIREMENTS = [
     "airbyte-cdk",
     "pika>=1.1.0",
     "threaded",
-<<<<<<< HEAD
     "requests",
-=======
-    "requests"
->>>>>>> 234393601064323c86fccf9f741441672d686299
 ]
 
 TEST_REQUIREMENTS = ["pytest~=6.2"]
