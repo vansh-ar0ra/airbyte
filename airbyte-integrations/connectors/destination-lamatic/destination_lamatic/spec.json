@@ -33,9 +33,15 @@
         "description": "Data Mapping of the fields from the Source Connector to the Pod Schema as a json object",
         "default": ""
       },
-      "webhookURL": {
+      "webhook_URL": {
+        "title": "Webhook URL",
         "type": "string",
         "description": "Webhook URL to be passed to the Pod, which receives notification about the job status"
+      },
+      "bearer_token": {
+        "title": "Bearer token",
+        "type": "string",
+        "description": "Bearer token for authorization with pod"
       }
     }
   }
