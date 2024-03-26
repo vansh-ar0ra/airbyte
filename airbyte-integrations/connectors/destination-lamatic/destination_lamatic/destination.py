@@ -30,7 +30,7 @@ def create_connection(config: Mapping[str, Any]) -> BlockingConnection:
     username = config.get("username")
     password = config.get("password")
     virtual_host = config.get("virtual_host", "")
-    ssl_enabled = config.get("ssl", False)
+    ssl_enabled = config.get("ssl",False)
     amqp_protocol = "amqp"
     host_url = host
     if port:
@@ -125,9 +125,8 @@ def consume_messages(config):
     connection.close()
 
 
-def start_consumer_thread():
-    print("Consumer Thread started")
-    consumer_thread = threading.Thread(target=consume_messages)
+def start_consumer_thread(config):
+    consumer_thread = threading.Thread(target=consume_messages, args=(config,))
     consumer_thread.start()
     return consumer_thread
 
@@ -171,7 +170,6 @@ class DestinationLamatic(Destination):
                     if record.stream not in streams:
                         # Message contains record from a stream that is not in the catalog. Skip it!
                         continue
-                    print(message)
                     headers = {"stream": record.stream, "emitted_at": record.emitted_at, "namespace": record.namespace}
                     properties = BasicProperties(content_type="application/json", headers=headers)
                     channel.basic_publish(
