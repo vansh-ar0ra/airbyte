@@ -63,7 +63,7 @@ def map_data(data_mapping, body, required_fields):
         for k,v in data_mapping.items():
             
             if isinstance(v, str): 
-                if v in body.keys() and body[v]:
+                if v in body.keys() and body[v]!=None:
                     final_obj[k] = body[v]
                 elif "*" in required_fields or k in required_fields:
                     raise "Error: Mapping for required field {k}: {v} does not map to any field in the Source connector data"
