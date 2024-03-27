@@ -152,7 +152,7 @@ class SourceLamaticGoogleDriveParser(FileTypeParser):
                 # otherwise, we raise the error to fail the sync
                 if format.skip_unprocessable_files:
                     exception_str = str(e)
-                    logger.warn(f"File {file.uri} caused an error during parsing: {exception_str}.")
+                    logger.warn(f"File {file.path} caused an error during parsing: {exception_str}.")
                     yield {
                         "content": None,
                         "id": file.uri,
@@ -163,7 +163,7 @@ class SourceLamaticGoogleDriveParser(FileTypeParser):
                         "url": None,
                         "_ab_source_file_parse_error": exception_str,
                     }
-                    logger.warn(f"File {file.uri} cannot be parsed. Skipping it.")
+                    logger.warn(f"File {file.path} cannot be parsed. Skipping it.")
                 else:
                     raise e
 
