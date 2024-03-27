@@ -30,6 +30,7 @@ from unstructured.file_utils.filetype import FILETYPE_TO_MIMETYPE, STR_TO_FILETY
 
 unstructured_partition_pdf = None
 unstructured_partition_docx = None
+unstructured_partition_doc = None
 unstructured_partition_pptx = None
 
 def optional_decode(contents: Union[str, bytes]) -> str:
@@ -42,14 +43,17 @@ def _import_unstructured() -> None:
     """Dynamically imported as needed, due to slow import speed."""
     global unstructured_partition_pdf
     global unstructured_partition_docx
+    global unstructured_partition_doc
     global unstructured_partition_pptx
     from unstructured.partition.docx import partition_docx
     from unstructured.partition.pdf import partition_pdf
     from unstructured.partition.pptx import partition_pptx
+    from unstructured.partition.doc import partition_doc
 
     # separate global variables to properly propagate typing
     unstructured_partition_pdf = partition_pdf
     unstructured_partition_docx = partition_docx
+    unstructured_partition_doc = partition_doc
     unstructured_partition_pptx = partition_pptx
 
 
@@ -165,7 +169,7 @@ class SourceLamaticGoogleDriveParser(FileTypeParser):
 
     def _read_file(self, file_handle: IOBase, remote_file: RemoteFile, format: UnstructuredFormat, logger: logging.Logger) -> str:
         _import_unstructured()
-        if (not unstructured_partition_pdf) or (not unstructured_partition_docx) or (not unstructured_partition_pptx):
+        if (not unstructured_partition_pdf) or (not unstructured_partition_docx) or (not unstructured_partition_pptx) or (not unstructured_partition_doc):
             # check whether unstructured library is actually available for better error message and to ensure proper typing (can't be None after this point)
             raise Exception("unstructured library is not available")
 
@@ -279,7 +283,7 @@ class SourceLamaticGoogleDriveParser(FileTypeParser):
 
     def _read_file_locally(self, file_handle: IOBase, filetype: FileType, strategy: str, remote_file: RemoteFile) -> str:
         _import_unstructured()
-        if (not unstructured_partition_pdf) or (not unstructured_partition_docx) or (not unstructured_partition_pptx):
+        if (not unstructured_partition_pdf) or (not unstructured_partition_docx) or (not unstructured_partition_pptx) or (not unstructured_partition_doc):
             # check whether unstructured library is actually available for better error message and to ensure proper typing (can't be None after this point)
             raise Exception("unstructured library is not available")
 
@@ -299,6 +303,8 @@ class SourceLamaticGoogleDriveParser(FileTypeParser):
                     elements = unstructured_partition_pdf(file=file, strategy=strategy)
             elif filetype == FileType.DOCX:
                 elements = unstructured_partition_docx(file=file)
+            elif filetype == FileType.DOC:
+                elements = unstructured_partition_doc(file=file)
             elif filetype == FileType.PPTX:
                 elements = unstructured_partition_pptx(file=file)
         except Exception as e:
@@ -342,7 +348,7 @@ class SourceLamaticGoogleDriveParser(FileTypeParser):
         return type_based_on_content
 
     def _supported_file_types(self) -> List[Any]:
-        return [FileType.MD, FileType.PDF, FileType.DOCX, FileType.PPTX, FileType.TXT]
+        return [FileType.MD, FileType.PDF, FileType.DOCX, FileType.PPTX, FileType.TXT, FileType.DOC]
 
     def _get_file_type_error_message(self, file_type: FileType) -> str:
         supported_file_types = ", ".join([str(type) for type in self._supported_file_types()])
