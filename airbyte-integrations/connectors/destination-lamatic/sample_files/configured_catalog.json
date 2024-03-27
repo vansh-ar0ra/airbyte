@@ -4,11 +4,7 @@
         "sync_mode": "full_refresh",
         "destination_sync_mode": "append",
         "stream": {
-<<<<<<< HEAD
           "name": "test",
-=======
-          "name": "4e89bc32-ef5c-4b5f-a0ac-21d7638a6a8a",
->>>>>>> 234393601064323c86fccf9f741441672d686299
           "supported_sync_modes": [
             "full_refresh",
             "incremental"

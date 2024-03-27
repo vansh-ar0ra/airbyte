@@ -1,7 +1,2 @@
-<<<<<<< HEAD
-{"type": "RECORD", "record": {"stream": "test", "emitted_at": 1664705198575, "data": { "id": 12, "name": "Vansh"}}}
-{"type": "RECORD", "record": {"stream": "test", "emitted_at": 1664705198575, "data": { "id": 16, "name": "Mehul"}}}
-=======
-{"type": "RECORD", "record": {"stream": "4e89bc32-ef5c-4b5f-a0ac-21d7638a6a8a", "emitted_at": 1664705198575, "data": { "id": 12, "name": "Vansh"}}}
-{"type": "RECORD", "record": {"stream": "4e89bc32-ef5c-4b5f-a0ac-21d7638a6a8a", "emitted_at": 1664705198575, "data": { "id": 16, "name": "Mehul"}}}
->>>>>>> 234393601064323c86fccf9f741441672d686299
+{"type": "RECORD", "record": {"stream": "test", "emitted_at": 1664705198575, "data": { "content": null, "id": "blah blah", "url": "this is URL", "path": "this is path", "name": "this is name"}}}
+{"type": "RECORD", "record": {"stream": "test", "emitted_at": 1664705198575, "data": { "content": "This one is correct", "id": "blah blah", "url": "this is URL", "path": "this is path", "name": "this is name"}}}

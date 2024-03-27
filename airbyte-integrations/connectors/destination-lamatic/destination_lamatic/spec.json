@@ -6,7 +6,7 @@
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "Destination Rabbitmq",
     "type": "object",
-    "required": ["host", "pod_URL", "data_mapping", "username", "password"],
+    "required": ["host", "pod_URL", "data_mapping", "username", "password", "required_fields"],
     "additionalProperties": false,
     "properties": {
       "pod_URL": {
@@ -42,6 +42,16 @@
         "title": "Bearer token",
         "type": "string",
         "description": "Bearer token for authorization with pod"
+      },
+      "required_fields": {
+        "title": "Required Fields",
+        "description": "List of fields that are required in the Object for indexing. * for all fields",
+        "default": [],
+        "type": "array",
+        "items": {
+          "title": "Required Field Name",
+          "type": "string"
+        }
       }
     }
   }

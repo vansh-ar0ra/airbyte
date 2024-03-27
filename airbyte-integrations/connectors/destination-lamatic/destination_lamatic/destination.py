@@ -40,29 +40,50 @@ def create_connection(config: Mapping[str, Any]) -> BlockingConnection:
     return BlockingConnection(params)
 
 
-def map_data(data_mapping, body):
-    try: 
+def get_nested_required_fields(k, required_fields):
+
+    new_requried_fields= []
+
+    for field in required_fields:
+        if "." in field:
+            split_field = field.split(".")
+            if split_field[0] == k:
+                field = ".".join(split_field[1:])
+
+        new_requried_fields.append(field)
+
+    return new_requried_fields
+
+
+def map_data(data_mapping, body, required_fields):
+    try:        
         final_obj = {}
         data_mapping = json.loads(data_mapping)
         
         for k,v in data_mapping.items():
             
             if isinstance(v, str): 
-                if v in body.keys():
+                if v in body.keys() and body[v]:
                     final_obj[k] = body[v]
-                else: 
-                    print(f"Error: Mapping for field {k}: {v} does not map to any field in the Source connector data")
+                elif "*" in required_fields or k in required_fields:
+                    raise "Error: Mapping for required field {k}: {v} does not map to any field in the Source connector data"
                 
             if isinstance(v, dict): 
                 new_mapping = json.dumps(v)
-                mapped_obj = map_data(new_mapping, body)
+
+                if "*" in required_fields: 
+                    mapped_obj = map_data(new_mapping, body, ["*"])
+                else: 
+                    new_required_fields = get_nested_required_fields(k, required_fields)
+                    mapped_obj = map_data(new_mapping, body, new_required_fields)
+
                 if mapped_obj:
                     final_obj[k] = mapped_obj
         
         return final_obj
     
     except Exception as e:
-        print(f"Error in Data Mapping: {e}")
+        raise (f"Error in Data Mapping: {e}")
 
 
 def consume_messages(config):
@@ -73,6 +94,7 @@ def consume_messages(config):
     channel = connection.channel()
     data_mapping = config.get("data_mapping","")
     bearer_token = config.get("bearer_token", "")
+    required_fields = config.get("required_fields", "")
     
     # Ensure the queue exists
     # channel.queue_declare(queue=queue_name, durable=True)
@@ -89,7 +111,7 @@ def consume_messages(config):
 
             if (data_mapping): 
                 try:
-                    mapped_data = map_data(data_mapping, json.loads(body.decode()))
+                    mapped_data = map_data(data_mapping, json.loads(body.decode()), required_fields)
                     print(f"Mapped Data: {mapped_data}")
 
                     variables = {"documentObj": mapped_data, "webhookURL": ""}
