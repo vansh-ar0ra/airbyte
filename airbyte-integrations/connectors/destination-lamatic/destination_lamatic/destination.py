@@ -66,7 +66,7 @@ def map_data(data_mapping, body, required_fields):
                 if v in body.keys() and body[v]!=None:
                     final_obj[k] = body[v]
                 elif "*" in required_fields or k in required_fields:
-                    raise "Error: Mapping for required field {k}: {v} does not map to any field in the Source connector data"
+                    raise ValueError(f"Error: Mapping for required field {k}: {v} does not map to any field in the Source connector data")
                 
             if isinstance(v, dict): 
                 new_mapping = json.dumps(v)
@@ -131,6 +131,7 @@ def consume_messages(config):
             if method_frame:
                 print(f" [x] Received {body.decode()}")
 
+            try:
                 if (data_mapping): 
                     mapped_data = map_data(data_mapping, json.loads(body.decode()), required_fields)
                     print(f"Mapped Data: {mapped_data}")
@@ -153,8 +154,10 @@ def consume_messages(config):
                 
                 else:
                     print("No data mapping is provided")
-                    # Acknowledge the message
+                # Acknowledge the message
                 channel.basic_ack(delivery_tag=method_frame.delivery_tag)
+            except Exception as e:
+                print(f"Error in message processing: {e}")
             else:
                 # Inactivity timeout reached, check if the thread should stop
                 print("Stopping the Message Consumer for this Invocation of Write function")
