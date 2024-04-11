@@ -154,9 +154,11 @@ def consume_messages(config):
                     else:
                         print("No data mapping is provided")
                     # Acknowledge the message
-                    channel.basic_ack(delivery_tag=method_frame.delivery_tag)
                 except Exception as e:
                     print(f"Error in message processing: {e}")
+
+                finally:
+                    channel.basic_ack(delivery_tag=method_frame.delivery_tag)
             else:
                 # Inactivity timeout reached, check if the thread should stop
                 print("Stopping the Message Consumer for this Invocation of Write function")
