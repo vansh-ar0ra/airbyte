@@ -129,35 +129,34 @@ def consume_messages(config):
             # Set up a consumer
         for method_frame, properties, body in channel.consume(queue=queue_name, auto_ack=False, inactivity_timeout=60):
             if method_frame:
-                print(f" [x] Received {body.decode()}")
+                try:
+                    print(f" [x] Received {body.decode()}")
+                    if (data_mapping): 
+                        mapped_data = map_data(data_mapping, json.loads(body.decode()), required_fields)
+                        print(f"Mapped Data: {mapped_data}")
 
-            try:
-                if (data_mapping): 
-                    mapped_data = map_data(data_mapping, json.loads(body.decode()), required_fields)
-                    print(f"Mapped Data: {mapped_data}")
+                        variables = {"documentObj": mapped_data, "webhookURL": ""}
+                        print(variables)
+                        
+                        if (bearer_token):
+                            headers = {
+                                "Authorization": f"Bearer {bearer_token}"
+                            }
 
-                    variables = {"documentObj": mapped_data, "webhookURL": ""}
-                    print(variables)
+                            pod_response = requests.post(pod_URL, json={"query": _INDEX_QUERY, "variables": variables}, headers= headers)
+                        else: 
+                            pod_response = requests.post(pod_URL, json={"query": _INDEX_QUERY, "variables": variables})
+
+                        print(pod_response)
+                        print(pod_response.text)
+                        print(" [x] Sent the Data to Pod")
                     
-                    if (bearer_token):
-                        headers = {
-                            "Authorization": f"Bearer {bearer_token}"
-                        }
-
-                        pod_response = requests.post(pod_URL, json={"query": _INDEX_QUERY, "variables": variables}, headers= headers)
-                    else: 
-                        pod_response = requests.post(pod_URL, json={"query": _INDEX_QUERY, "variables": variables})
-
-                    print(pod_response)
-                    print(pod_response.text)
-                    print(" [x] Sent the Data to Pod")
-                
-                else:
-                    print("No data mapping is provided")
-                # Acknowledge the message
-                channel.basic_ack(delivery_tag=method_frame.delivery_tag)
-            except Exception as e:
-                print(f"Error in message processing: {e}")
+                    else:
+                        print("No data mapping is provided")
+                    # Acknowledge the message
+                    channel.basic_ack(delivery_tag=method_frame.delivery_tag)
+                except Exception as e:
+                    print(f"Error in message processing: {e}")
             else:
                 # Inactivity timeout reached, check if the thread should stop
                 print("Stopping the Message Consumer for this Invocation of Write function")
