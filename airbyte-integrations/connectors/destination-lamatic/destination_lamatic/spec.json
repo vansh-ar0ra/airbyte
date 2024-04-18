@@ -42,6 +42,10 @@
         "title": "Bearer token",
         "type": "string",
         "description": "Bearer token for authorization with pod"
+      },"source": {
+        "title": "Source",
+        "type": "string",
+        "description": "Source of the Data"
       },
       "required_fields": {
         "title": "Required Fields",

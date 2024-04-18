@@ -19,8 +19,8 @@ from pika.spec import BasicProperties
 _DEFAULT_PORT = 5672
 _ROUTING_KEY = "info"
 _EXCHANGE = "lamatic_exchange"
-_INDEX_QUERY = """mutation($documentObj: JSON!, $webhookURL: String) {
-  IndexData(documentObj: $documentObj, webhookURL: $webhookURL)
+_INDEX_QUERY = """mutation($documentObj: JSON!, $webhookURL: String, $source: String) {
+  IndexData(documentObj: $documentObj, webhookURL: $webhookURL, source: $source)
 }"""
 
 
@@ -103,6 +103,7 @@ def consume_messages(config):
     pod_URL = config.get('pod_URL')
     data_mapping = config.get("data_mapping","")
     bearer_token = config.get("bearer_token", "")
+    source = config.get("source", "")
     required_fields = config.get("required_fields", "")
     
     # Ensure the queue exists
@@ -135,7 +136,7 @@ def consume_messages(config):
                         mapped_data = map_data(data_mapping, json.loads(body.decode()), required_fields)
                         print(f"Mapped Data: {mapped_data}")
 
-                        variables = {"documentObj": mapped_data, "webhookURL": ""}
+                        variables = {"documentObj": mapped_data, "webhookURL": "", "source": source}
                         print(variables)
                         
                         if (bearer_token):
