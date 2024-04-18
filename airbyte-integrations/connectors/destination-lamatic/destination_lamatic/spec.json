@@ -9,6 +9,10 @@
     "required": ["host", "pod_URL", "data_mapping", "username", "password", "required_fields"],
     "additionalProperties": false,
     "properties": {
+      "data_mapping_id": {
+        "type": "string",
+        "description": "Data Mapping Id for the indexing workflow"
+      },
       "pod_URL": {
         "type": "string",
         "description": "URL for posting the data from the queue after data mapping."
@@ -42,10 +46,11 @@
         "title": "Bearer token",
         "type": "string",
         "description": "Bearer token for authorization with pod"
-      },"source": {
-        "title": "Source",
-        "type": "string",
-        "description": "Source of the Data"
+      },
+      "skip_nodes": {
+        "title": "Skip Nodes",
+        "type": "integer",
+        "description": "Number of Nodes to skip while executing Indexing workflow"
       },
       "required_fields": {
         "title": "Required Fields",
