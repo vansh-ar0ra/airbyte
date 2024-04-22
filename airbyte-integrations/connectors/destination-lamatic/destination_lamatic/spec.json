@@ -47,10 +47,10 @@
         "type": "string",
         "description": "Bearer token for authorization with pod"
       },
-      "skip_nodes": {
-        "title": "Skip Nodes",
-        "type": "integer",
-        "description": "Number of Nodes to skip while executing Indexing workflow"
+      "node_id": {
+        "title": "Node Id",
+        "type": "string",
+        "description": "Node Id of the Data Source Node in the Workflow, used for resuming the workflow from the same point"
       },
       "required_fields": {
         "title": "Required Fields",
