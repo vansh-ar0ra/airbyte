@@ -19,8 +19,8 @@ from pika.spec import BasicProperties
 _DEFAULT_PORT = 5672
 _ROUTING_KEY = "info"
 _EXCHANGE = "lamatic_exchange"
-_INDEX_QUERY = """mutation($dataMappingId: String!, $inputData: JSON, $nodeId: String) {
-  IndexData(dataMappingId: $dataMappingId, inputData: $inputData, nodeId: $nodeId)
+_INDEX_QUERY = """mutation($dataMappingId: String!, $payload: JSON, $nodeId: String) {
+  IndexDataFromId(dataMappingId: $dataMappingId, payload: $payload, nodeId: $nodeId)
 }"""
 
 
@@ -137,7 +137,7 @@ def consume_messages(config):
                         mapped_data = map_data(data_mapping, json.loads(body.decode()), required_fields)
                         print(f"Mapped Data: {mapped_data}")
 
-                        variables = {"dataMappingId": data_mapping_id, "inputData": mapped_data, "nodeId": node_id}
+                        variables = {"dataMappingId": data_mapping_id, "payload": mapped_data, "nodeId": node_id}
                         print(variables)
                         
                         if (bearer_token):
