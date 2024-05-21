@@ -19,9 +19,7 @@ from pika.spec import BasicProperties
 _DEFAULT_PORT = 5672
 _ROUTING_KEY = "info"
 _EXCHANGE = "lamatic_exchange"
-_INDEX_QUERY = """mutation($dataMappingId: String!, $payload: JSON, $nodeId: String) {
-  IndexDataFromId(dataMappingId: $dataMappingId, payload: $payload, nodeId: $nodeId)
-}"""
+
 
 
 def create_connection(config: Mapping[str, Any]) -> BlockingConnection:
@@ -100,11 +98,11 @@ def consume_messages(config):
     
     connection, channel = reconnect(None)
 
-    data_mapping_id = config.get("data_mapping_id", "")
     pod_URL = config.get('pod_URL')
     data_mapping = config.get("data_mapping","")
     bearer_token = config.get("bearer_token", "")
-    node_id = config.get("node_id", 0)
+    node_id = config.get("node_id", "")
+    project_id = config.get("project_id", "")
     required_fields = config.get("required_fields", "")
     
     # Ensure the queue exists
@@ -135,22 +133,29 @@ def consume_messages(config):
                     print(f" [x] Received {body.decode()}")
                     if (data_mapping): 
                         mapped_data = map_data(data_mapping, json.loads(body.decode()), required_fields)
-                        print(f"Mapped Data: {mapped_data}")
+                        # print(f"Mapped Data: {mapped_data}")
 
-                        variables = {"dataMappingId": data_mapping_id, "payload": mapped_data, "nodeId": node_id}
-                        print(variables)
+                        # variables = {"dataMappingId": data_mapping_id, "payload": mapped_data, "nodeId": node_id}
+                        # print(variables)
                         
-                        if (bearer_token):
-                            headers = {
-                                "Authorization": f"Bearer {bearer_token}"
-                            }
+                        # if (bearer_token):
+                        #     headers = {
+                        #         "Authorization": f"Bearer {bearer_token}"
+                        #     }
 
-                            pod_response = requests.post(pod_URL, json={"query": _INDEX_QUERY, "variables": variables}, headers= headers)
-                        else: 
-                            pod_response = requests.post(pod_URL, json={"query": _INDEX_QUERY, "variables": variables})
+                        #     pod_response = requests.post(pod_URL, json={"query": _INDEX_QUERY, "variables": variables}, headers= headers)
+                        # else: 
+                        #     pod_response = requests.post(pod_URL, json={"query": _INDEX_QUERY, "variables": variables})
+                        body = {
+                            "data": mapped_data,
+                            "nodeId": node_id,
+                            "projectId": project_id
+                        }
 
-                        print(pod_response)
-                        print(pod_response.text)
+                        response = requests.post(pod_URL, json=body)
+
+                        print(response)
+                        print(response.status_code)
                         print(" [x] Sent the Data to Pod")
                     
                     else:
