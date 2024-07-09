@@ -7,7 +7,8 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Union
 
 from airbyte_cdk.utils.oneof_option_config import OneOfOptionConfig
-from pydantic import BaseModel, Field, ValidationError, root_validator, validator
+from pydantic.v1 import BaseModel, Field, root_validator, validator
+from pydantic.v1.error_wrappers import ValidationError
 
 
 class InferenceType(Enum):
@@ -146,6 +147,11 @@ class CsvFormat(BaseModel):
         default=InferenceType.NONE,
         description="How to infer the types of the columns. If none, inference default to strings.",
         airbyte_hidden=True,
+    )
+    ignore_errors_on_fields_mismatch: bool = Field(
+        title="Ignore errors on field mismatch",
+        default=False,
+        description="Whether to ignore errors that occur when the number of fields in the CSV does not match the number of columns in the schema.",
     )
 
     @validator("delimiter")

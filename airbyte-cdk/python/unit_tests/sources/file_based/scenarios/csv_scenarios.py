@@ -265,6 +265,12 @@ single_csv_scenario: TestScenario[InMemoryFilesSource] = (
                                                     "airbyte_hidden": True,
                                                     "enum": ["None", "Primitive Types Only"],
                                                 },
+                                                "ignore_errors_on_fields_mismatch": {
+                                                    "type": "boolean",
+                                                    "title": "Ignore errors on field mismatch",
+                                                    "default": False,
+                                                    "description": "Whether to ignore errors that occur when the number of fields in the CSV does not match the number of columns in the schema.",
+                                                },
                                             },
                                             "required": ["filetype"],
                                         },
@@ -296,7 +302,7 @@ single_csv_scenario: TestScenario[InMemoryFilesSource] = (
                                             "required": ["filetype"],
                                         },
                                         {
-                                            "title": "Document File Type Format (Experimental)",
+                                            "title": "Unstructured Document Format",
                                             "type": "object",
                                             "properties": {
                                                 "filetype": {
@@ -439,6 +445,7 @@ single_csv_scenario: TestScenario[InMemoryFilesSource] = (
                     "name": "stream1",
                     "source_defined_cursor": True,
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 }
             ]
         }
@@ -529,6 +536,7 @@ csv_analytics_scenario: TestScenario[InMemoryFilesSource] = (
                     "name": "stream1",
                     "source_defined_cursor": True,
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 },
                 {
                     "default_cursor_field": ["_ab_source_file_last_modified"],
@@ -545,6 +553,7 @@ csv_analytics_scenario: TestScenario[InMemoryFilesSource] = (
                     "name": "stream2",
                     "source_defined_cursor": True,
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 }
             ]
         }
@@ -653,6 +662,7 @@ multi_csv_scenario: TestScenario[InMemoryFilesSource] = (
                     "name": "stream1",
                     "source_defined_cursor": True,
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 }
             ]
         }
@@ -758,6 +768,7 @@ multi_csv_stream_n_file_exceeds_limit_for_inference = (
                     "name": "stream1",
                     "source_defined_cursor": True,
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 }
             ]
         }
@@ -852,6 +863,7 @@ invalid_csv_scenario: TestScenario[InMemoryFilesSource] = (
                     "name": "stream1",
                     "source_defined_cursor": True,
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 }
             ]
         }
@@ -936,6 +948,7 @@ invalid_csv_multi_scenario: TestScenario[InMemoryFilesSource] = (
                     "name": "stream1",
                     "source_defined_cursor": True,
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 },
                 {
                     "json_schema": {
@@ -950,6 +963,7 @@ invalid_csv_multi_scenario: TestScenario[InMemoryFilesSource] = (
                     "source_defined_cursor": True,
                     "default_cursor_field": ["_ab_source_file_last_modified"],
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 },
             ]
         }
@@ -1026,6 +1040,7 @@ csv_single_stream_scenario: TestScenario[InMemoryFilesSource] = (
                     },
                     "name": "stream1",
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                     "source_defined_cursor": True,
                     "default_cursor_field": ["_ab_source_file_last_modified"],
                 }
@@ -1117,6 +1132,7 @@ csv_multi_stream_scenario: TestScenario[InMemoryFilesSource] = (
                     },
                     "name": "stream1",
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                     "source_defined_cursor": True,
                     "default_cursor_field": ["_ab_source_file_last_modified"],
                 },
@@ -1133,6 +1149,7 @@ csv_multi_stream_scenario: TestScenario[InMemoryFilesSource] = (
                     "source_defined_cursor": True,
                     "default_cursor_field": ["_ab_source_file_last_modified"],
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 },
             ]
         }
@@ -1245,6 +1262,7 @@ csv_custom_format_scenario: TestScenario[InMemoryFilesSource] = (
                     "source_defined_cursor": True,
                     "default_cursor_field": ["_ab_source_file_last_modified"],
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 }
             ]
         }
@@ -1363,6 +1381,7 @@ multi_stream_custom_format = (
                     },
                     "name": "stream1",
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                     "source_defined_cursor": True,
                     "default_cursor_field": ["_ab_source_file_last_modified"],
                 },
@@ -1381,6 +1400,7 @@ multi_stream_custom_format = (
                     "source_defined_cursor": True,
                     "default_cursor_field": ["_ab_source_file_last_modified"],
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 },
             ]
         }
@@ -1482,6 +1502,7 @@ empty_schema_inference_scenario: TestScenario[InMemoryFilesSource] = (
                     "name": "stream1",
                     "source_defined_cursor": True,
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 }
             ]
         }
@@ -1545,6 +1566,7 @@ schemaless_csv_scenario: TestScenario[InMemoryFilesSource] = (
                     "name": "stream1",
                     "source_defined_cursor": True,
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 }
             ]
         }
@@ -1647,6 +1669,7 @@ schemaless_csv_multi_stream_scenario: TestScenario[InMemoryFilesSource] = (
                     },
                     "name": "stream1",
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                     "source_defined_cursor": True,
                     "default_cursor_field": ["_ab_source_file_last_modified"],
                 },
@@ -1663,6 +1686,7 @@ schemaless_csv_multi_stream_scenario: TestScenario[InMemoryFilesSource] = (
                     "source_defined_cursor": True,
                     "default_cursor_field": ["_ab_source_file_last_modified"],
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 },
             ]
         }
@@ -1755,6 +1779,7 @@ schemaless_with_user_input_schema_fails_connection_check_scenario: TestScenario[
                     "name": "stream1",
                     "source_defined_cursor": True,
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 }
             ]
         }
@@ -1827,6 +1852,7 @@ schemaless_with_user_input_schema_fails_connection_check_multi_stream_scenario: 
                     },
                     "name": "stream1",
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                     "source_defined_cursor": True,
                     "default_cursor_field": ["_ab_source_file_last_modified"],
                 },
@@ -1843,6 +1869,7 @@ schemaless_with_user_input_schema_fails_connection_check_multi_stream_scenario: 
                     "source_defined_cursor": True,
                     "default_cursor_field": ["_ab_source_file_last_modified"],
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 },
             ]
         }
@@ -1905,6 +1932,7 @@ csv_string_can_be_null_with_input_schemas_scenario: TestScenario[InMemoryFilesSo
                     "name": "stream1",
                     "source_defined_cursor": True,
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 }
             ]
         }
@@ -1977,6 +2005,7 @@ csv_string_are_not_null_if_strings_can_be_null_is_false_scenario: TestScenario[I
                     "name": "stream1",
                     "source_defined_cursor": True,
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 }
             ]
         }
@@ -2046,6 +2075,7 @@ csv_string_not_null_if_no_null_values_scenario: TestScenario[InMemoryFilesSource
                     "name": "stream1",
                     "source_defined_cursor": True,
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 }
             ]
         }
@@ -2113,6 +2143,7 @@ csv_strings_can_be_null_not_quoted_scenario: TestScenario[InMemoryFilesSource] =
                     "name": "stream1",
                     "source_defined_cursor": True,
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 }
             ]
         }
@@ -2182,6 +2213,7 @@ csv_newline_in_values_quoted_value_scenario: TestScenario[InMemoryFilesSource] =
                     "name": "stream1",
                     "source_defined_cursor": True,
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 }
             ]
         }
@@ -2251,6 +2283,7 @@ csv_newline_in_values_not_quoted_scenario: TestScenario[InMemoryFilesSource] = (
                     "name": "stream1",
                     "source_defined_cursor": True,
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 }
             ]
         }
@@ -2334,6 +2367,7 @@ csv_escape_char_is_set_scenario: TestScenario[InMemoryFilesSource] = (
                     "name": "stream1",
                     "source_defined_cursor": True,
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 }
             ]
         }
@@ -2407,6 +2441,7 @@ csv_double_quote_is_set_scenario: TestScenario[InMemoryFilesSource] = (
                     "name": "stream1",
                     "source_defined_cursor": True,
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 }
             ]
         }
@@ -2475,6 +2510,7 @@ csv_custom_delimiter_with_escape_char_scenario: TestScenario[InMemoryFilesSource
                     "name": "stream1",
                     "source_defined_cursor": True,
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 }
             ]
         }
@@ -2548,6 +2584,7 @@ csv_custom_delimiter_in_double_quotes_scenario: TestScenario[InMemoryFilesSource
                     "name": "stream1",
                     "source_defined_cursor": True,
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 }
             ]
         }
@@ -2617,6 +2654,7 @@ csv_skip_before_header_scenario: TestScenario[InMemoryFilesSource] = (
                     "name": "stream1",
                     "source_defined_cursor": True,
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 }
             ]
         }
@@ -2686,6 +2724,7 @@ csv_skip_after_header_scenario: TestScenario[InMemoryFilesSource] = (
                     "name": "stream1",
                     "source_defined_cursor": True,
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 }
             ]
         }
@@ -2759,6 +2798,7 @@ csv_skip_before_and_after_header_scenario: TestScenario[InMemoryFilesSource] = (
                     "name": "stream1",
                     "source_defined_cursor": True,
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 }
             ]
         }
@@ -2828,6 +2868,7 @@ csv_autogenerate_column_names_scenario: TestScenario[InMemoryFilesSource] = (
                     "name": "stream1",
                     "source_defined_cursor": True,
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 }
             ]
         }
@@ -2900,6 +2941,7 @@ csv_custom_bool_values_scenario: TestScenario[InMemoryFilesSource] = (
                     "name": "stream1",
                     "source_defined_cursor": True,
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 }
             ]
         }
@@ -2971,6 +3013,7 @@ csv_custom_null_values_scenario: TestScenario[InMemoryFilesSource] = (
                     "name": "stream1",
                     "source_defined_cursor": True,
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 }
             ]
         }
@@ -3023,7 +3066,6 @@ earlier_csv_scenario: TestScenario[InMemoryFilesSource] = (
         .set_file_type("csv")
     )
     .set_expected_check_status("FAILED")
-    .set_expected_check_error(AirbyteTracedException, FileBasedSourceError.EMPTY_STREAM.value)
     .set_expected_catalog(
         {
             "streams": [
@@ -3032,20 +3074,20 @@ earlier_csv_scenario: TestScenario[InMemoryFilesSource] = (
                     "json_schema": {
                         "type": "object",
                         "properties": {
-                            "col1": {"type": "string"},
-                            "col2": {"type": "string"},
                             "_ab_source_file_last_modified": {"type": "string"},
                             "_ab_source_file_url": {"type": "string"},
+                            "data": {"type": "object"},
                         },
                     },
                     "name": "stream1",
                     "source_defined_cursor": True,
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 }
             ]
         }
     )
-    .set_expected_discover_error(AirbyteTracedException, FileBasedSourceError.SCHEMA_INFERENCE_ERROR.value)
+    .set_expected_records(None)
 ).build()
 
 csv_no_records_scenario: TestScenario[InMemoryFilesSource] = (
@@ -3097,9 +3139,56 @@ csv_no_records_scenario: TestScenario[InMemoryFilesSource] = (
                     "name": "stream1",
                     "source_defined_cursor": True,
                     "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
                 }
             ]
         }
     )
     .set_expected_records([])
+).build()
+
+csv_no_files_scenario: TestScenario[InMemoryFilesSource] = (
+    TestScenarioBuilder[InMemoryFilesSource]()
+    .set_name("no_files_csv_stream")
+    .set_config(
+        {
+            "streams": [
+                {
+                    "name": "stream1",
+                    "format": {"filetype": "csv"},
+                    "globs": ["*"],
+                    "validation_policy": "Emit Record",
+                }
+            ],
+            "start_date": "2023-06-10T03:54:07.000000Z",
+        }
+    )
+    .set_source_builder(
+        FileBasedSourceBuilder()
+        .set_files({})
+        .set_file_type("csv")
+    )
+    .set_expected_check_status("FAILED")
+    .set_expected_catalog(
+        {
+            "streams": [
+                {
+                    "default_cursor_field": ["_ab_source_file_last_modified"],
+                    "json_schema": {
+                        "type": "object",
+                        "properties": {
+                            "_ab_source_file_last_modified": {"type": "string"},
+                            "_ab_source_file_url": {"type": "string"},
+                            "data": {"type": "object"},
+                        },
+                    },
+                    "name": "stream1",
+                    "source_defined_cursor": True,
+                    "supported_sync_modes": ["full_refresh", "incremental"],
+                    "is_resumable": True,
+                }
+            ]
+        }
+    )
+    .set_expected_records(None)
 ).build()
