@@ -6,7 +6,7 @@
 from setuptools import find_packages, setup
 
 MAIN_REQUIREMENTS = [
-    "airbyte-cdk",
+    "airbyte-cdk==0.70.0",
     "pika>=1.1.0",
     "threaded",
     "requests",
