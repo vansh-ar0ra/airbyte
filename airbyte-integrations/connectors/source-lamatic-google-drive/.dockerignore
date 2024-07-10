@@ -1,0 +1,7 @@
+*
+!Dockerfile
+!Dockerfile.test
+!main.py
+!source_lamatic_google_drive
+!setup.py
+!secrets

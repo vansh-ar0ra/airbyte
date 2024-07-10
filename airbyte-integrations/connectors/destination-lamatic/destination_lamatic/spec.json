@@ -1,0 +1,68 @@
+{
+  "documentationUrl": "https://docs.airbyte.com/integrations/destinations/rabbitmq",
+  "supported_destination_sync_modes": ["append"],
+  "supportsIncremental": true,
+  "connectionSpecification": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Destination Rabbitmq",
+    "type": "object",
+    "required": ["host", "pod_URL", "data_mapping", "username", "password", "required_fields"],
+    "additionalProperties": false,
+    "properties": {
+      "pod_URL": {
+        "type": "string",
+        "description": "URL for posting the data from the queue after data mapping."
+      },
+      "host": {
+        "type": "string",
+        "description": "The RabbitMQ host name."
+      },
+      "username": {
+        "type": "string",
+        "description": "The username to connect."
+      },
+      "password": {
+        "type": "string",
+        "title": "Password",
+        "description": "The password to connect.",
+        "airbyte_secret": true
+      },
+      "data_mapping": {
+        "title": "Data Mapping",
+        "type": "string",
+        "description": "Data Mapping of the fields from the Source Connector to the Pod Schema as a json object",
+        "default": ""
+      },
+      "webhook_URL": {
+        "title": "Webhook URL",
+        "type": "string",
+        "description": "Webhook URL to be passed to the Pod, which receives notification about the job status"
+      },
+      "bearer_token": {
+        "title": "Bearer token",
+        "type": "string",
+        "description": "Bearer token for authorization with pod"
+      },
+      "node_id": {
+        "title": "Node Id",
+        "type": "string",
+        "description": "Node Id of the Data Source Node in the Workflow"
+      },
+      "project_id": {
+        "title": "Project Id",
+        "type": "string",
+        "description": "Project Id of the project"
+      },
+      "required_fields": {
+        "title": "Required Fields",
+        "description": "List of fields that are required in the Object for indexing. * for all fields",
+        "default": [],
+        "type": "array",
+        "items": {
+          "title": "Required Field Name",
+          "type": "string"
+        }
+      }
+    }
+  }
+}

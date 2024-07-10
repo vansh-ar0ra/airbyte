@@ -1,0 +1,2 @@
+{"type": "RECORD", "record": {"stream": "test", "emitted_at": 1664705198575, "data": { "content": "", "id": "blah blah", "url": "this is URL", "path": "this is path", "name": "this is name"}}}
+{"type": "RECORD", "record": {"stream": "test", "emitted_at": 1664705198575, "data": { "content": "This one is correct", "id": "blah blah", "url": "this is URL", "path": "this is path", "name": "this is name"}}}
