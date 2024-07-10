@@ -10,6 +10,8 @@ MAIN_REQUIREMENTS = [
     "pika>=1.1.0",
     "threaded",
     "requests",
+    "asyncio",
+    "aiohttp"
 ]
 
 TEST_REQUIREMENTS = ["pytest~=6.2"]

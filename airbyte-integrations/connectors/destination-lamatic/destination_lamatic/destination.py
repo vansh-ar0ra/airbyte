@@ -7,7 +7,10 @@ from typing import Any, Iterable, Mapping
 import threading
 import requests
 import time
+import asyncio
+import aiohttp
 
+#TODO: Airbyte logging, requeue
 import pika
 from airbyte_cdk import AirbyteLogger
 from airbyte_cdk.destinations import Destination
@@ -82,6 +85,42 @@ def map_data(data_mapping, body, required_fields):
     
     except Exception as e:
         raise (f"Error in Data Mapping: {e}")
+    
+async def send_request(session, pod_URL, body, headers):
+    async with session.post(pod_URL, json=body, headers=headers) as response:
+        response.raise_for_status()
+        return await response.json(content_type=None)
+
+async def process_message(body, config, channel, delivery_tag, session):
+
+    pod_URL = config.get('pod_URL')
+    data_mapping = config.get("data_mapping","")
+    bearer_token = config.get("bearer_token", "")
+    node_id = config.get("node_id", "")
+    project_id = config.get("project_id", "")
+    required_fields = config.get("required_fields", "")
+    indexQuery = config.get("indexQuery")
+
+    try:
+        print(f" [x] Received {body.decode()}")
+        mapped_data = map_data(data_mapping, json.loads(body.decode()), required_fields) if data_mapping else None
+        variables = {
+            "payload": mapped_data,
+            "workflowId": node_id,
+        }
+        request_body = {
+            "variables": variables,
+            "query": indexQuery
+        }
+
+        headers = {"Authorization": f"Bearer {bearer_token}"} if bearer_token else {}
+        response = await send_request(session, pod_URL, request_body, headers)
+        print(" [x] Sent the Data to Pod")
+        channel.basic_ack(delivery_tag=delivery_tag)
+    except Exception as e:
+        print(f"Error processing message: {e}")
+        channel.basic_nack(delivery_tag=delivery_tag, requeue=False)
+
 
 
 def consume_messages(config):
@@ -110,7 +149,7 @@ def consume_messages(config):
 
     for attempt in range(max_retries):
         try: 
-            result = channel.queue_declare(queue='', exclusive=True)
+            result = channel.queue_declare(queue='', exclusive=True, durable=True)
             queue_name = result.method.queue
 
             channel.queue_bind(
@@ -126,53 +165,75 @@ def consume_messages(config):
             connection, channel = reconnect(connection)
             continue  # Continue to the next attempt
             
-            # Set up a consumer
-        for method_frame, properties, body in channel.consume(queue=queue_name, auto_ack=False, inactivity_timeout=60):
-            if method_frame:
-                try:
-                    print(f" [x] Received {body.decode()}")
-                    if (data_mapping): 
-                        mapped_data = map_data(data_mapping, json.loads(body.decode()), required_fields)
-                        # print(f"Mapped Data: {mapped_data}")
-
-                        # variables = {"dataMappingId": data_mapping_id, "payload": mapped_data, "nodeId": node_id}
-                        # print(variables)
-                        
-                        # if (bearer_token):
-                        #     headers = {
-                        #         "Authorization": f"Bearer {bearer_token}"
-                        #     }
-
-                        #     pod_response = requests.post(pod_URL, json={"query": _INDEX_QUERY, "variables": variables}, headers= headers)
-                        # else: 
-                        #     pod_response = requests.post(pod_URL, json={"query": _INDEX_QUERY, "variables": variables})
-                        body = {
-                            "data": mapped_data,
-                            "nodeId": node_id,
-                            "projectId": project_id
-                        }
-
-                        response = requests.post(pod_URL, json=body)
-
-                        print(response)
-                        print(response.status_code)
-                        print(" [x] Sent the Data to Pod")
-                    
+        # Set up a consumer
+        async def message_handler():
+            loop = asyncio.get_event_loop()
+            # asyncio.set_event_loop(loop)
+            tasks = []
+            async with aiohttp.ClientSession() as session:
+                for method_frame, properties, body in channel.consume(queue=queue_name, auto_ack=False, inactivity_timeout=60):
+                    if method_frame:
+                        task = loop.create_task(process_message(body, config, channel, method_frame.delivery_tag, session))
+                        tasks.append(task)
                     else:
-                        print("No data mapping is provided")
-                    # Acknowledge the message
-                except Exception as e:
-                    print(f"Error in message processing: {e}")
+                        print("Stopping the Message Consumer for this Invocation of Write function")
+                        break
+                if tasks:
+                    await asyncio.gather(*tasks)
 
-                finally:
-                    channel.basic_ack(delivery_tag=method_frame.delivery_tag)
-            else:
-                # Inactivity timeout reached, check if the thread should stop
-                print("Stopping the Message Consumer for this Invocation of Write function")
-                # Implement your logic here to decide whether to break the loop
-                # For example, you can check a condition or wait for a signal
-                break
+
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(message_handler())
+        loop.close()
         break
+
+        # for method_frame, properties, body in channel.consume(queue=queue_name, auto_ack=False, inactivity_timeout=60):
+        #     if method_frame:
+        #         try:
+        #             print(f" [x] Received {body.decode()}")
+        #             if (data_mapping): 
+        #                 mapped_data = map_data(data_mapping, json.loads(body.decode()), required_fields)
+        #                 # print(f"Mapped Data: {mapped_data}")
+
+        #                 # variables = {"dataMappingId": data_mapping_id, "payload": mapped_data, "nodeId": node_id}
+        #                 # print(variables)
+                        
+        #                 # if (bearer_token):
+        #                 #     headers = {
+        #                 #         "Authorization": f"Bearer {bearer_token}"
+        #                 #     }
+
+        #                 #     pod_response = requests.post(pod_URL, json={"query": _INDEX_QUERY, "variables": variables}, headers= headers)
+        #                 # else: 
+        #                 #     pod_response = requests.post(pod_URL, json={"query": _INDEX_QUERY, "variables": variables})
+        #                 body = {
+        #                     "data": mapped_data,
+        #                     "nodeId": node_id,
+        #                     "projectId": project_id
+        #                 }
+
+        #                 response = requests.post(pod_URL, json=body)
+
+        #                 print(response)
+        #                 print(response.status_code)
+        #                 print(" [x] Sent the Data to Pod")
+                    
+        #             else:
+        #                 print("No data mapping is provided")
+        #             # Acknowledge the message
+        #         except Exception as e:
+        #             print(f"Error in message processing: {e}")
+
+        #         finally:
+        #             channel.basic_ack(delivery_tag=method_frame.delivery_tag)
+        #     else:
+        #         # Inactivity timeout reached, check if the thread should stop
+        #         print("Stopping the Message Consumer for this Invocation of Write function")
+        #         # Implement your logic here to decide whether to break the loop
+        #         # For example, you can check a condition or wait for a signal
+        #         break
+        # break
     
     # Cancel the consumer and close the connection when done
     channel.cancel()

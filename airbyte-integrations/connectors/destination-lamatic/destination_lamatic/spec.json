@@ -6,7 +6,7 @@
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "Destination Rabbitmq",
     "type": "object",
-    "required": ["host", "pod_URL", "data_mapping", "username", "password", "required_fields"],
+    "required": ["host", "pod_URL", "data_mapping", "username", "password", "required_fields", "indexQuery"],
     "additionalProperties": false,
     "properties": {
       "pod_URL": {
@@ -52,6 +52,11 @@
         "title": "Project Id",
         "type": "string",
         "description": "Project Id of the project"
+      },
+      "indexQuery": {
+        "title": "Index Query",
+        "type": "string",
+        "description": "Index Query for the Graphql Request"
       },
       "required_fields": {
         "title": "Required Fields",
